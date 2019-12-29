@@ -6,97 +6,102 @@ git user name: Triple3Apple
 // preprocessor directive
 #include <iostream>
 #include <string>
+#include <windows.h>   // WinApi header (ONLY FOR WINDOWS)
+#include <ctime>
 
 // NOTE: Unreal Engine Naming Convention: ParcelCase, e.g. int LoopIndex;
 
 bool ValidateInput(std::string TempGuess);
 void StartGame();
+void ChangeCode();
 void PrintIntroAndHints();
+void PrintIntro();
+bool StartRound();
 
-const int CodeA = 3;
-const int CodeB = 7;
-const int CodeC = 5;
+int LevelDifficulty = 1;
+const int MaxLevelDifficulty = 5;
 
-const int CodeSum = CodeA + CodeB + CodeC;
-const int CodeProduct = CodeA * CodeB * CodeC;
+int CodeA = (rand() % LevelDifficulty) + 1;		// NOTE: rand() % 5   gives us a range of values from 0 - 4
+int CodeB = (rand() % LevelDifficulty) + 1;
+int CodeC = (rand() % LevelDifficulty) + 1;
+
+int CodeSum = CodeA + CodeB + CodeC;
+int CodeProduct = CodeA * CodeB * CodeC;
 int GuessSum;
 int GuessProduct;
 
 int GuessA, GuessB, GuessC;
 
+// color changing text reference from: https://www.daniweb.com/programming/software-development/code/216345/add-a-little-color-to-your-console-text
+HANDLE  hConsole;
+
 
 int main()
 {
+	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	srand(time(NULL));		// making rand() random [changing the seed of rand!]
 	StartGame();
 	return 0;
 }
 
 void StartGame()
 {
-	PrintIntroAndHints();
+	PrintIntro();
+	bool bLevelPassed = true;
+	
 
-	std::string TempA, TempB, TempC;
-
-	GuessSum = 0;
-	GuessProduct = 0;
-
-	// clearing input buffer (cin)
-	std::cin.clear();
-
-
-	std::cout << "Enter the first number of the secret code to continue...\n";
-	std::cin >> TempA;
-
-	// loops until player enters a integer
-	while (!ValidateInput(TempA))
+	while (LevelDifficulty <= MaxLevelDifficulty)
 	{
-		std::cout << TempA << " <-- is not a valid input, please enter a integer\n";
-		std::cin >> TempA;
+		bLevelPassed = StartRound();
+
+		// clearing input buffer (cin)
+		std::cin.clear();
+		std::cin.ignore();	// discards the buffer
+
+		if (bLevelPassed)
+		{
+			// increase difficulty
+			LevelDifficulty++;
+			if (LevelDifficulty != MaxLevelDifficulty + 1)
+			{
+				std::cout << "\nDifficulty Increasing..\n";
+				ChangeCode();
+			}
+		}
 	}
+}
 
-	std::cout << "Enter the second number of the secret code to continue...\n";
-	std::cin >> TempB;
 
-	// loops until player enters a integer
-	while (!ValidateInput(TempB))
+void ChangeCode()
+{
+	CodeA = (rand() % LevelDifficulty) + LevelDifficulty;		// NOTE: rand() % 5   gives us a range of values from 0 - 4
+	CodeB = (rand() % LevelDifficulty) + LevelDifficulty;
+	if (LevelDifficulty == 2)
 	{
-		std::cout << TempB << " <-- is not a valid input, please enter a integer\n";
-		std::cin >> TempB;
-	}
-
-	std::cout << "Enter the third number of the secret code to continue...\n";
-	std::cin >> TempC;
-
-	// loops until player enters a integer
-	while (!ValidateInput(TempC))
-	{
-		std::cout << TempC << " <-- is not a valid input, please enter a integer\n";
-		std::cin >> TempC;
-	}
-
-
-	// converting the strings to integer values
-	GuessA = std::stoi(TempA);
-	GuessB = std::stoi(TempB);
-	GuessC = std::stoi(TempC);
-
-	GuessSum = GuessA + GuessB + GuessC;
-	GuessProduct = GuessA * GuessB * GuessC;
-
-	// Check if player's code is correct
-	if ((GuessSum == CodeSum) && (GuessProduct == CodeProduct))
-	{
-		std::cout << "You cracked the code!\n";
+		CodeB = (rand() % LevelDifficulty) + LevelDifficulty;
 	}
 	else
 	{
-		std::cout << "ERROR! Wrong code entered! You Lose!\n";
+		CodeC = (rand() % LevelDifficulty) + LevelDifficulty - 1;
 	}
+
+	CodeSum = CodeA + CodeB + CodeC;
+	CodeProduct = CodeA * CodeB * CodeC;
 }
 
 void PrintIntroAndHints()
 {
-	std::string test = "   |_|  |_|  \\_\\_____|_|    |______|______| /_/ \\_\\ \n";
+	SetConsoleTextAttribute(hConsole, 15);
+	std::cout << "\nYou are a secret agent breaking into a level [ " << LevelDifficulty << " ] secure server room...\n";
+	std::cout << "You need a secret code to enter.\n";
+	std::cout << "# There are 3 numbers in the code.\n";
+	std::cout << "# The code adds up to: " << CodeSum << std::endl;
+	std::cout << "# The code multiplies to : " << CodeProduct << "\n\n";
+}
+
+void PrintIntro()
+{
+	
 	std::cout << " _______ _____   _____ _____  _      ______  __   __\n";
 	std::cout << "|__   __|  __ \\ |_   _|  __ \\| |    |  ____| \\ \\ / / \n";
 	std::cout << "   | |  | |__) |  | | | |__) | |    | |__     \\ V / \n";
@@ -104,7 +109,7 @@ void PrintIntroAndHints()
 	std::cout << "   | |  | | \\ \\  _| |_| |    | |____| |____   / . \\ \n";
 	std::cout << "   |_|  |_|  \\_\\|_____|_|    |______|______| /_/ \\_\\ \n\n";
 	std::cout << "By: Triple3Apple\n";
-                                                    
+
 	std::cout << "\n";
 	std::cout << "       WNNXXXXNNNNNNXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXNWW\n";
 	std::cout << "     WKkxdddddddddddddddddddddddddddddddddddooooooodkKW\n";
@@ -131,13 +136,83 @@ void PrintIntroAndHints()
 	std::cout << "     Kdlllllllllllllcccccccccccccccccccccllllllllllllo0\n";
 	std::cout << "     XxollllllllllllllcccccccccccccccllllllllllllllllxX\n";
 	std::cout << "      WN0OkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkO0\n";
-	std::cout << "\n\n";
+}
 
-	std::cout << "You are a secret agent breaking into a secure server room...\n";
-	std::cout << "You need a secret code to enter.\n";
-	std::cout << "# There are 3 numbers in the code.\n";
-	std::cout << "# The code adds up to: " << CodeSum << std::endl;
-	std::cout << "# The code multiplies to : " << CodeProduct << "\n\n";
+bool StartRound()
+{
+	PrintIntroAndHints();
+
+	std::string TempA, TempB, TempC;
+	bool bIsPlayerCorrect;					// NOTE: For unreal engine, "b" needs to be in front of a boolean name!
+
+	GuessSum = 0;
+	GuessProduct = 0;
+
+	std::cout << "Enter the first number of the secret code to continue...\n";
+	std::cin >> TempA;
+
+	// loops until player enters a integer
+	while (!ValidateInput(TempA))
+	{
+		std::cout << TempA << " <-- is not a valid input, please enter a integer\n";
+		std::cin >> TempA;
+	}
+
+	std::cout << "\nEnter the second number of the secret code to continue...\n";
+	std::cin >> TempB;
+
+	// loops until player enters a integer
+	while (!ValidateInput(TempB))
+	{
+		std::cout << TempB << " <-- is not a valid input, please enter a integer\n";
+		std::cin >> TempB;
+	}
+
+	std::cout << "\nEnter the third number of the secret code to continue...\n";
+	std::cin >> TempC;
+
+	// loops until player enters a integer
+	while (!ValidateInput(TempC))
+	{
+		std::cout << TempC << " <-- is not a valid input, please enter a integer\n";
+		std::cin >> TempC;
+	}
+
+
+	// converting the strings to integer values
+	GuessA = std::stoi(TempA);
+	GuessB = std::stoi(TempB);
+	GuessC = std::stoi(TempC);
+
+	GuessSum = GuessA + GuessB + GuessC;
+	GuessProduct = GuessA * GuessB * GuessC;
+
+	std::cout << "\n-----------------------------------------------------\n";
+	// Check if player's code is correct
+	if ((GuessSum == CodeSum) && (GuessProduct == CodeProduct))
+	{
+		SetConsoleTextAttribute(hConsole, 10);
+		if (LevelDifficulty == MaxLevelDifficulty)
+		{
+			std::cout << "\nYou WIN! You have retrieved all the files! Now get out of there agent!\n";
+		}
+		else
+		{
+			std::cout << "\nGood job agent, you cracked the code and retrieved a file! Keep Going!\n";
+		}
+		SetConsoleTextAttribute(hConsole, 15);
+		bIsPlayerCorrect = true;
+	}
+	else
+	{
+		SetConsoleTextAttribute(hConsole, 12);
+		std::cout << "\n## ERROR! Wrong code entered! Try again agent! ##\n";
+		SetConsoleTextAttribute(hConsole, 15);
+		
+		bIsPlayerCorrect = false;
+	}
+	std::cout << "\n-----------------------------------------------------\n";
+	return bIsPlayerCorrect;
 }
 
 bool ValidateInput(std::string TempGuess)

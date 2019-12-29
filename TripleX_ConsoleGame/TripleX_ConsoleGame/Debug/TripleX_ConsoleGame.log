@@ -1,2 +1,3 @@
 ﻿  TripleX.cpp
+D:\My Unreal Games\TripleX Game in C++\TripleX_ConsoleGame\TripleX_ConsoleGame\TripleX.cpp(42,12): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
   TripleX_ConsoleGame.vcxproj -> D:\My Unreal Games\TripleX Game in C++\TripleX_ConsoleGame\Debug\TripleX_ConsoleGame.exe
